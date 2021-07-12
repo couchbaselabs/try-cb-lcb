@@ -1,0 +1,12 @@
+# Kore.io defaults
+*.so
+*.o
+.flavor
+.objs
+assets.h
+cert
+dh2048.pem
+
+# Other development artifacts
+*.log
+*.pid
