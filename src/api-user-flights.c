@@ -291,6 +291,10 @@ static lcb_STATUS add_user_booking(tcblcb_UserFlightsParams *user_params, const 
     cmd_scheduled = true;
 
 done:
+    if (flight_uuid_json_string != NULL) {
+        free(flight_uuid_json_string);
+    }
+    
     if (ops != NULL) {
         IfLCBFailLogWarningMsg(
             lcb_subdocspecs_destroy(ops),

@@ -32,6 +32,8 @@ typedef struct tcblcb_FlightPathResults {
 
 static void fpaths_query_callback(__unused lcb_INSTANCE *instance, __unused int type, const lcb_RESPQUERY *resp)
 {
+    cJSON *row_json = NULL;
+
     IfLCBFailGotoDone(
         lcb_respquery_status(resp),
         "Failed to execute query"
@@ -55,8 +57,8 @@ static void fpaths_query_callback(__unused lcb_INSTANCE *instance, __unused int 
 
         LogDebug("Row Data: %.*s", (int)nrow, row);
 
-        // we will not delete this here because it will be added to the array
-        cJSON *row_json = cJSON_ParseWithLength(row, nrow);
+        // this will be deleted because we're extracting JSON string copies
+        row_json = cJSON_ParseWithLength(row, nrow);
         IfNULLGotoDone(row_json, "Failed to parse row result");
 
         // this helper can iterate arrays or object entries
@@ -65,17 +67,18 @@ static void fpaths_query_callback(__unused lcb_INSTANCE *instance, __unused int 
             const char *current_key = row_object->string;
             if (current_key != NULL && cJSON_IsString(row_object)) {
                 if (strcmp(current_key, "fromAirport") == 0) {
-                    flight_path_results->from_airport = row_object->valuestring;
+                    flight_path_results->from_airport = create_json_string_param(row_object->valuestring);
                 } else if (strcmp(current_key, "toAirport") == 0) {
-                    flight_path_results->to_airport = row_object->valuestring;
+                    flight_path_results->to_airport = create_json_string_param(row_object->valuestring);
                 }
             } 
         }
     }
 
 done:
-    // no clean up to do in this block
-    return;
+    if (row_json != NULL) {
+        cJSON_Delete(row_json);
+    }
 }
 
 static void routes_query_callback(__unused lcb_INSTANCE *instance, __unused int type, const lcb_RESPQUERY *resp)
@@ -272,9 +275,9 @@ int tcblcb_api_fpaths(struct http_request *req)
         "ORDER BY a.name ASC";
     size_t routes_query_strlen = sizeof(routes_query_string) - 1;
 
-    from_faa_json_string = create_json_string_param(flight_path_results.from_airport);
+    from_faa_json_string = flight_path_results.from_airport;
     IfNULLGotoDone(from_faa_json_string, "Failed to get 'fromfaa' parameter JSON string value");
-    to_faa_json_string = create_json_string_param(flight_path_results.to_airport);
+    to_faa_json_string = flight_path_results.to_airport;
     IfNULLGotoDone(to_faa_json_string, "Failed to get 'tofaa' parameter JSON string value");
     int leave_weekday = weekday(leave_date_string);
     leave_weekday_json_string = create_json_number_param(leave_weekday);
@@ -378,6 +381,10 @@ int tcblcb_api_fpaths(struct http_request *req)
 
 done:
     http_response(req, 200, response_string, response_strlen);
+
+    if (params_string != NULL) {
+        free(params_string);
+    }
 
     if (from_faa_json_string != NULL) {
         free(from_faa_json_string);
