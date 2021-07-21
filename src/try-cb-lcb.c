@@ -25,15 +25,26 @@
 
 _Thread_local lcb_INSTANCE *_tcblcb_lcb_instance = NULL;
 
-// TODO: Arg processing for connection config
-static const char   DEFAULT_CONN_STRING[]   = "couchbase://127.0.0.1"; // "couchbase://db";
+// See `docker-compose.yml` for the `db` alias that resolves to the couchbase-server docker hostname.
+static const char   DEFAULT_CONN_STRING[]   = "couchbase://db";
 static const size_t DEFAULT_CONN_STRLEN     = sizeof(DEFAULT_CONN_STRING) - 1;
-static const char   DEFAULT_USER_STRING[]   = "raycardillo"; // "Administrator";
+static const char   DEFAULT_USER_STRING[]   = "Administrator";
 static const size_t DEFAULT_USER_STRLEN     = sizeof(DEFAULT_USER_STRING) - 1;
-static const char   DEFAULT_PSWD_STRING[]   = "raycardillo"; // "password";
+static const char   DEFAULT_PSWD_STRING[]   = "password";
 static const size_t DEFAULT_PSWD_STRLEN     = sizeof(DEFAULT_PSWD_STRING) - 1;
 static const char   TRAVEL_BUCKET_STRING[]  = "travel-sample";
 static const size_t TRAVEL_BUCKET_STRLEN    = sizeof(TRAVEL_BUCKET_STRING) - 1;
+
+static const char   ENV_CB_CONN[]   = "CB_CONN";
+static const char   ENV_CB_USER[]   = "CB_USER";
+static const char   ENV_CB_PSWD[]   = "CB_PSWD";
+
+static const char  *_cb_conn_string = DEFAULT_CONN_STRING;
+static size_t       _cb_conn_strlen = DEFAULT_CONN_STRLEN;
+static const char  *_cb_user_string = DEFAULT_USER_STRING;
+static size_t       _cb_user_strlen = DEFAULT_USER_STRLEN;
+static const char  *_cb_pswd_string = DEFAULT_PSWD_STRING;
+static size_t       _cb_pswd_strlen = DEFAULT_PSWD_STRLEN;
 
 static void open_callback(__unused lcb_INSTANCE *instance, lcb_STATUS rc)
 {
@@ -128,8 +139,30 @@ static void destroy_cb_instance()
 
 void kore_parent_configure(__unused int argc, __unused char *argv[])
 {
-    //use current time as seed for random number generator
+    // use current time as the random number generator seed
     srand(time(NULL));
+
+    // kore has it's own command line options processing so we'll use env variables instead
+    char *cb_conn = getenv(ENV_CB_CONN);
+    if (cb_conn != NULL && cb_conn[0] != '\0') {
+        _cb_conn_string = cb_conn;
+        _cb_conn_strlen = strlen(cb_conn);
+    }
+
+    char *cb_user = getenv(ENV_CB_USER);
+    if (cb_user != NULL && cb_user[0] != '\0') {
+        _cb_user_string = cb_user;
+        _cb_user_strlen = strlen(cb_user);
+    }
+
+    char *cb_pswd = getenv(ENV_CB_PSWD);
+    if (cb_pswd != NULL && cb_pswd[0] != '\0') {
+        _cb_pswd_string = cb_pswd;
+        _cb_pswd_strlen = strlen(cb_pswd);
+    }
+
+    kore_log(LOG_INFO, "Couchbase Connection (%s): %s", ENV_CB_CONN, _cb_conn_string);
+    kore_log(LOG_INFO, "Couchbase Username (%s): %s", ENV_CB_USER, _cb_user_string);
 }
 
 void kore_worker_configure()
@@ -138,11 +171,11 @@ void kore_worker_configure()
 
     lcb_CREATEOPTS *create_options = NULL;
     lcb_createopts_create(&create_options, LCB_TYPE_CLUSTER);
-    lcb_createopts_connstr(create_options, DEFAULT_CONN_STRING, DEFAULT_CONN_STRLEN);
+    lcb_createopts_connstr(create_options, _cb_conn_string, _cb_conn_strlen);
     lcb_createopts_credentials(
         create_options,
-        DEFAULT_USER_STRING, DEFAULT_USER_STRLEN,
-        DEFAULT_PSWD_STRING, DEFAULT_PSWD_STRLEN
+        _cb_user_string, _cb_user_strlen,
+        _cb_pswd_string, _cb_pswd_strlen
     );
 
     // Note that we're creating the instance as a thread local in the worker threads

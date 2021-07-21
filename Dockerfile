@@ -10,4 +10,4 @@ ADD . /koreapp
 EXPOSE 8080
 
 # Set the entrypoint 
-ENTRYPOINT ["./wait-for-couchbase.sh", "kore", "-c", "config/try-cb-lcb.config"]
+ENTRYPOINT ["./wait-for-couchbase.sh", "kore", "-c", "/koreapp/config/try-cb-lcb.config"]

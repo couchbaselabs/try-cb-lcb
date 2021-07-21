@@ -112,6 +112,13 @@ void to_upper_case(char *str);
 // return day of the week, where Monday == 0 ... Sunday == 6.
 int weekday(const char *date_string);
 
+// create a JSON array from an array of string references. caller must free.
+// strings provided are referenced (not copied).
+cJSON *create_string_array_param_json(char *strings[], int nstrings);
+
+// create a serialized JSON array string from an array of string references. caller must free.
+char *create_string_array_param_string(char *strings[], int nstrings);
+
 // create a serialized JSON string param value. caller must free.
 char *create_json_string_param(const char *value_string);
 

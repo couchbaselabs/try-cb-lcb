@@ -3,7 +3,7 @@
 
 set -e
 
-CB_HOST="${CB_HOST:-db}"
+CB_CONN="${CB_CONN:-db}"
 CB_USER="${CB_USER:-Administrator}"
 CB_PSWD="${CB_PSWD:-password}"
 
@@ -46,7 +46,7 @@ wait-for-one() {
 
 wait-for() {
   local ATTEMPTS=$1
-  local URL="http://${CB_HOST}${2}"
+  local URL="http://${CB_CONN}${2}"
   shift
   shift
 
@@ -62,9 +62,9 @@ wait-for() {
 }
 
 function createHotelsIndex() {
-  log "Creating hotels-index..."
+  log "Creating hotels-index ..."
   http_code=$(curl -o hotel-index.out -w '%{http_code}' -s -u ${CB_USER}:${CB_PSWD} -X PUT \
-    http://${CB_HOST}:8094/api/index/hotels-index \
+    http://${CB_CONN}:8094/api/index/hotels-index \
     -H 'cache-control: no-cache' \
     -H 'content-type: application/json' \
     -d @fts-hotels-index.json)

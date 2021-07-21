@@ -100,6 +100,36 @@ int weekday(const char *date_string)
     return (date_tm.tm_wday + 6) % 7;
 }
 
+// creates an array of cJSON_String stopping at the NULL terminator but cannot store JSON NULL values.
+cJSON *create_string_array_param_json(char *strings[], int nstrings)
+{
+    cJSON * array_json = cJSON_CreateArray();
+
+    for (int i=0; i<nstrings; i++) {
+        char *string = strings[i];
+        if (string == NULL) {
+            cJSON_AddItemToArray(array_json, cJSON_CreateNull());
+        } else {
+            cJSON_AddItemToArray(array_json, cJSON_CreateStringReference(string));
+        }
+    }
+
+    return array_json;
+}
+
+char *create_string_array_param_string(char *strings[], int nstrings)
+{
+    char *array_string = NULL;
+
+    cJSON *array_json = create_string_array_param_json(strings, nstrings);
+    if (array_json != NULL) {
+        array_string = cJSON_PrintBuffered(array_json, BUFSIZ, false);
+        cJSON_Delete(array_json);
+    }
+    
+    return array_string;
+}
+
 char *create_json_string_param(const char *value_string)
 {
     cJSON *json_string = NULL;

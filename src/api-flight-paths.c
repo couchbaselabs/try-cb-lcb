@@ -140,8 +140,7 @@ int tcblcb_api_fpaths(struct http_request *req)
 
     lcb_CMDQUERY *query_cmd = NULL;
 
-    char *from_loc_json_string = NULL;
-    char *to_loc_json_string = NULL;
+    char *params_string = NULL;
 
     char *from_faa_json_string = NULL;
     char *to_faa_json_string = NULL;
@@ -172,15 +171,15 @@ int tcblcb_api_fpaths(struct http_request *req)
         http_argument_urldecode(path_segments[2]),
         "Failed to URL decode 'from loc' parameter"
     );
-    from_loc_json_string = create_json_string_param(path_segments[2]);
-    IfNULLGotoDone(from_loc_json_string, "Failed to get 'from loc' parameter JSON string value");
+    char *from_loc_param = path_segments[2];
+    IfNULLGotoDone(from_loc_param, "Failed to get 'from loc' parameter from path segment");
 
     IfBadKoreResultGotoDone(
         http_argument_urldecode(path_segments[3]),
         "Failed to URL decode 'to loc' parameter"
     );
-    to_loc_json_string = create_json_string_param(path_segments[3]);
-    IfNULLGotoDone(to_loc_json_string, "Failed to get 'to loc' parameter JSON string value");
+    char *to_loc_param = path_segments[3];
+    IfNULLGotoDone(to_loc_param, "Failed to get 'to loc' parameter from path segment");
 
     // parse the leave query parameter
     http_populate_qs(req);
@@ -200,11 +199,13 @@ int tcblcb_api_fpaths(struct http_request *req)
         "WHERE airportname = $2";
     size_t fpaths_query_strlen = sizeof(fpaths_query_string) - 1;
 
+    char *params[2] = {from_loc_param, to_loc_param};
+    params_string = create_string_array_param_string(params, 2);
+
     LogDebug(
-        "Flight Paths Query Request:\n(%s)\nQuery Params:(%s, %s)",
+        "Flight Paths Query Request:\n%s\nQuery Params: %s",
         fpaths_query_string,
-        from_loc_json_string,
-        to_loc_json_string
+        params_string
     );
 
     // add the query to the response context
@@ -236,12 +237,8 @@ int tcblcb_api_fpaths(struct http_request *req)
         "Failed to set fpaths query command statement"
     );
     IfLCBFailGotoDone(
-        lcb_cmdquery_positional_param(query_cmd, from_loc_json_string, strlen(from_loc_json_string)),
-        "Failed to set 'from location' query command parameter"
-    );
-    IfLCBFailGotoDone(
-        lcb_cmdquery_positional_param(query_cmd, to_loc_json_string, strlen(to_loc_json_string)),
-        "Failed to set 'to location' query command parameter"
+        lcb_cmdquery_positional_param(query_cmd, params_string, strlen(params_string)),
+        "Failed to set query command positional parameters"
     );
     IfLCBFailGotoDone(
         lcb_cmdquery_option(query_cmd, "pretty", strlen("pretty"), "false", strlen("false")),
@@ -381,14 +378,6 @@ int tcblcb_api_fpaths(struct http_request *req)
 
 done:
     http_response(req, 200, response_string, response_strlen);
-
-    if (from_loc_json_string != NULL) {
-        free(from_loc_json_string);
-    }
-
-    if (to_loc_json_string != NULL) {
-        free(to_loc_json_string);
-    }
 
     if (from_faa_json_string != NULL) {
         free(from_faa_json_string);

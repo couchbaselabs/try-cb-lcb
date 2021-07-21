@@ -79,7 +79,7 @@ int tcblcb_api_airports(struct http_request *req)
     
     struct kore_buf *query_buf = NULL;
     struct kore_buf *context_buf = NULL;
-    char *param_string = NULL;
+    char *params_string = NULL;
 
     cJSON *response_json = NULL;
     char *response_string = NULL;
@@ -91,26 +91,31 @@ int tcblcb_api_airports(struct http_request *req)
         "search query param was not found"
     );
 
-    size_t search_strlen = strlen(search_string);
-    bool same_case = is_same_case(search_string);
-
     query_buf = kore_buf_alloc(BUFSIZ);
     kore_buf_appendf(query_buf, "SELECT airportname FROM `travel-sample`.inventory.airport WHERE ");
 
+    bool is_short_code = false;
+    bool same_case = is_same_case(search_string);
     if (same_case) {
+        size_t search_strlen = strlen(search_string);
         if (search_strlen == 3) {
+            is_short_code = true;
             kore_buf_appendf(query_buf, "faa=$1");
             to_upper_case(search_string);
         } else if (search_strlen == 4) {
+            is_short_code = true;
             kore_buf_appendf(query_buf, "icao=$1");
             to_upper_case(search_string);
         }
-    } else {
+    }
+    
+    if (!is_short_code) {
         kore_buf_appendf(query_buf, "POSITION(LOWER(airportname), $1) = 0");
         to_lower_case(search_string);
     }
 
-    param_string = create_json_string_param(search_string);
+    char *params[1] = {search_string};
+    params_string = create_string_array_param_string(params, 1);
 
     size_t query_strlen;
     char *query_string = kore_buf_stringify(query_buf, &query_strlen);
@@ -121,7 +126,7 @@ int tcblcb_api_airports(struct http_request *req)
     size_t context_strlen;
     char *context_string = kore_buf_stringify(context_buf, &context_strlen);
 
-    LogDebug("Query Request:\n(%s)\nQuery Params: [%s]", query_string, param_string);
+    LogDebug("Query Request:\n%s\nQuery Params: %s", query_string, params_string);
 
     // prepare JSON response early so we can accumulate query results
 	response_json = cJSON_CreateObject();
@@ -145,8 +150,8 @@ int tcblcb_api_airports(struct http_request *req)
         "Failed to set query command statement"
     );
     IfLCBFailGotoDone(
-        lcb_cmdquery_positional_param(cmd, param_string, strlen(param_string)),
-        "Failed to set query command parameter"
+        lcb_cmdquery_positional_param(cmd, params_string, strlen(params_string)),
+        "Failed to set query command positional parameters"
     );
     IfLCBFailGotoDone(
         lcb_cmdquery_option(cmd, "pretty", strlen("pretty"), "false", strlen("false")),
@@ -181,8 +186,8 @@ int tcblcb_api_airports(struct http_request *req)
 done:
     http_response(req, 200, response_string, response_strlen);
 
-    if (param_string != NULL) {
-        free(param_string);
+    if (params_string != NULL) {
+        free(params_string);
     }
 
     if (query_buf != NULL) {
