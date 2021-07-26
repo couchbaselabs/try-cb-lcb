@@ -2,7 +2,7 @@
 
 This is a sample application for getting started with [Couchbase Server] and the [C-SDK] (aka, [libcouchbase] or **"LCB"**).
 The application runs a single page web UI for demonstrating [N1QL] (SQL for Documents), [Sub-Document] requests, and Full Text Search ([FTS]) querying capabilities.
-It uses **Couchbase Server** together with the [Kore.io] web framework, [Swagger] for API documentation, [cJSON] for handling JSON serialization, and [libjwt] for the JWT Authorization token.
+It uses **Couchbase Server** together with the [Kore.io] web framework, [Swagger] for API documentation, [cJSON] for handling JSON serialization, and some other utility libraries.
 
 The application is a flight planner that demonstrates: new user registration, returning user login, searching for and selecting flight routes based on airports and dates, adding user bookings, displaying user bookings, and searching for hotels.
 
@@ -28,9 +28,10 @@ There are three server component layers required to run the full application:
 This project has the following direct dependencies (which may pull in transitive dependencies):
 
 - [libcouchbase] - C library SDK for Couchbase.
-- [cJSON] - C library for serializing JSON data.
 - [libjwt] - C library for encoding JSON Web Tokens.
+- [libuuid] - C library for generating UUIDs.
 - [Kore.io] - An HTTP server framework written in C.
+- [cJSON] - C library for serializing JSON data (source copied here).
 
 The following are indirect dependencies or tools that may be useful for development:
 - [Swagger] - Language for describing a REST API.
@@ -100,14 +101,14 @@ curl --fail -s -u <username>:<password> -X PUT \
 Once you have a Couchbase Server running, the `travel-sample` sample data installed, and the `hotels-index` created, you can start the `frontend` and `backend` by passing the Couchbase server connection params as environment variables:
 
 ```
-CB_CONN=couchbase://cb.example.com CB_USER=Administrator CB_PSWD=password docker-compose -f mix-and-match.yml up backend frontend
+CB_HOST=cb.example.com CB_USER=Administrator CB_PSWD=password docker-compose -f mix-and-match.yml up backend frontend
 ```
 
 ### Running the backend manually
 
 If you want to run the `backend` REST server (this project) yourself without using Docker, you will need to ensure that you have the dependencies installed and are able to run the [Kore.io] run commands. You may still use Docker to run the `db` and `frontend` components if desired. The information in [Running All Components Manually](#running-all-components-manually) may be useful in this regard.
 
-For example, if you want to see how the sample frontend Vue application works with your changes, you can run it with:
+For example, if you want to see how the sample frontend Vue application works with your manually running `backend` changes, you can just run the `frontend` with:
 
 ```
 docker-compose -f mix-and-match.yml up frontend
@@ -131,17 +132,17 @@ For local development, the instructions mentioned in [Mix and Match Services](#m
 There are a few libraries required, but [Kore.io] is the most limiting dependency. Kore supports several unix variants but it's easiest to get started on **macOS 10.10.x** or greater. So using [homebrew](https://brew.sh/) on macOS is the easiest way to get up and running with the following command:
 
 ```
-brew install libcouchbase kore cjson libjwt
+brew install libcouchbase libjwt ossp-uuid kore
 ```
 
 ### Starting the Backend
 
-See [Kore.io] documentation for more details on various ways to run the server. However, during development, the most useful way to run the server in DEBUG mode is using the `kodev` command. For convenience, we can just use the included helper script [dev-run.sh](./dev-run.sh). However, Kore takes control of the command line arguments, so we must specify the Couchbase Server configuration parameters using environment variables instead.
+See [Kore.io] documentation for more details on various ways to run the server. However, during development, the most useful way to run the server in DEBUG mode is using the `kodev` command. For convenience, we can just use the included helper script [run-dev.sh](./run-dev.sh). However, Kore takes control of the command line arguments, so we must specify the Couchbase Server configuration parameters using environment variables instead.
 
 For example, the following commmand will run the `backend` server as a foreground process in DEBUG mode all log output will be visible in the terminal console:
 
 ```
-CB_CONN=couchbase://127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./dev-run.sh
+CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./dev-run.sh
 ```
 
 To stop the server press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and wait for the server to gracefully shutdown.
@@ -169,6 +170,7 @@ The Swagger (OpenApi version 3) specification document can be accessed on the ba
 [Kore.io]: https://kore.io/
 [cJSON]: https://github.com/DaveGamble/cJSON
 [libjwt]: https://github.com/benmcollins/libjwt
+[libuuid]: http://www.ossp.org/pkg/lib/uuid/
 [Swagger]: https://swagger.io/resources/open-api/
 [Docker]: https://docs.docker.com/get-docker/
 [Visual Studio Code]: https://code.visualstudio.com/

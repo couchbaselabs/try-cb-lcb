@@ -3,9 +3,14 @@
 
 set -e
 
-CB_CONN="${CB_CONN:-db}"
+CB_SCHEME="${CB_SCHEME:-couchbase://}"
+CB_HOST="${CB_HOST:-db}"
 CB_USER="${CB_USER:-Administrator}"
 CB_PSWD="${CB_PSWD:-password}"
+
+echo "CB_SCHEME=${CB_SCHEME}"
+echo "CB_HOST=${CB_HOST}"
+echo "CB_USER=${CB_USER}"
 
 #### Utility Functions ####
 # (see bottom of file for the calling script)
@@ -46,7 +51,7 @@ wait-for-one() {
 
 wait-for() {
   local ATTEMPTS=$1
-  local URL="http://${CB_CONN}${2}"
+  local URL="http://${CB_HOST}${2}"
   shift
   shift
 
@@ -64,7 +69,7 @@ wait-for() {
 function createHotelsIndex() {
   log "Creating hotels-index ..."
   http_code=$(curl -o hotel-index.out -w '%{http_code}' -s -u ${CB_USER}:${CB_PSWD} -X PUT \
-    http://${CB_CONN}:8094/api/index/hotels-index \
+    http://${CB_HOST}:8094/api/index/hotels-index \
     -H 'cache-control: no-cache' \
     -H 'content-type: application/json' \
     -d @fts-hotels-index.json)

@@ -28,6 +28,8 @@
 #include <cjson/cJSON.h>
 #include <libcouchbase/couchbase.h>
 
+#define __unused __attribute__((__unused__))
+
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
 #ifdef DEBUG

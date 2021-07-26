@@ -336,7 +336,7 @@ static void user_password_subdoc_callback(__unused lcb_INSTANCE *instance, void 
     if (lcb_respsubdoc_result_size(resp) > 0) {
         user_password_result->password = extract_string_value_from_subdoc_resp(resp, 0);
     } else {
-        LogDebug("User password subdoc result was EMPTY", NULL);
+        LogDebug("%s", "User password subdoc result was EMPTY");
     }
 
 done:
