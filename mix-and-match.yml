@@ -10,8 +10,6 @@ services:
       - CB_USER
       - CB_PSWD
     command: -c $CB_HOST -u $CB_USER -p $CB_PSWD
-    volumes:
-      - .:/app
     container_name: try-cb-api-mm
 
   frontend:
