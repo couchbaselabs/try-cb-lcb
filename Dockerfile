@@ -13,7 +13,7 @@ WORKDIR /try-cb-lcb
 
 RUN apt-get update -y && apt-get install -y \
     software-properties-common \
-    build-essential \
+    build-essential cmake \
     libssl-dev libjwt-dev libcjson-dev \
     kore jq curl wget
 
