@@ -611,7 +611,7 @@ static void user_bookings_subdoc_callback(lcb_INSTANCE *instance, void *cookie, 
             );
         }
     } else {
-        LogDebug("User bookings subdoc result was EMPTY", NULL);
+        LogDebug("%s", "User bookings subdoc result was EMPTY");
     }
 
 done:

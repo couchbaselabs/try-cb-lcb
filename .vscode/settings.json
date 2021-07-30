@@ -39,6 +39,11 @@
         "version": "c",
         "new": "c",
         "sstream": "c",
-        "streambuf": "c"
+        "streambuf": "c",
+        "try-cb-lcb.h": "c",
+        "stdbool.h": "c",
+        "strings.h": "c",
+        "util.h": "c",
+        "string.h": "c"
     }
 }

@@ -102,7 +102,7 @@ static void hotels_subdoc_callback(__unused lcb_INSTANCE *instance, void *cookie
         );
 
     } else {
-        LogDebug("Hotels subdoc result was EMPTY", NULL);
+        LogDebug("%s", "Hotels subdoc result was EMPTY");
     }
 
 done:

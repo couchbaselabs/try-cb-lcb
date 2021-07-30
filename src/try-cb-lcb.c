@@ -26,8 +26,10 @@
 _Thread_local lcb_INSTANCE *_tcblcb_lcb_instance = NULL;
 
 // See `docker-compose.yml` for the `db` alias that resolves to the couchbase-server docker hostname.
-static const char   DEFAULT_CONN_STRING[]   = "couchbase://db";
-static const size_t DEFAULT_CONN_STRLEN     = sizeof(DEFAULT_CONN_STRING) - 1;
+static const char   DEFAULT_SCHEME_STRING[] = "couchbase://";
+static const size_t DEFAULT_SCHEME_STRLEN   = sizeof(DEFAULT_SCHEME_STRING) - 1;
+static const char   DEFAULT_HOST_STRING[]   = "db";
+static const size_t DEFAULT_HOST_STRLEN     = sizeof(DEFAULT_HOST_STRING) - 1;
 static const char   DEFAULT_USER_STRING[]   = "Administrator";
 static const size_t DEFAULT_USER_STRLEN     = sizeof(DEFAULT_USER_STRING) - 1;
 static const char   DEFAULT_PSWD_STRING[]   = "password";
@@ -35,16 +37,22 @@ static const size_t DEFAULT_PSWD_STRLEN     = sizeof(DEFAULT_PSWD_STRING) - 1;
 static const char   TRAVEL_BUCKET_STRING[]  = "travel-sample";
 static const size_t TRAVEL_BUCKET_STRLEN    = sizeof(TRAVEL_BUCKET_STRING) - 1;
 
-static const char   ENV_CB_CONN[]   = "CB_CONN";
+static const char   ENV_CB_SCHEME[] = "CB_SCHEME";
+static const char   ENV_CB_HOST[]   = "CB_HOST";
 static const char   ENV_CB_USER[]   = "CB_USER";
 static const char   ENV_CB_PSWD[]   = "CB_PSWD";
 
-static const char  *_cb_conn_string = DEFAULT_CONN_STRING;
-static size_t       _cb_conn_strlen = DEFAULT_CONN_STRLEN;
-static const char  *_cb_user_string = DEFAULT_USER_STRING;
-static size_t       _cb_user_strlen = DEFAULT_USER_STRLEN;
-static const char  *_cb_pswd_string = DEFAULT_PSWD_STRING;
-static size_t       _cb_pswd_strlen = DEFAULT_PSWD_STRLEN;
+static const char  *_cb_scheme_string = DEFAULT_SCHEME_STRING;
+static size_t       _cb_scheme_strlen = DEFAULT_SCHEME_STRLEN;
+static const char  *_cb_host_string   = DEFAULT_HOST_STRING;
+static size_t       _cb_host_strlen   = DEFAULT_HOST_STRLEN;
+static const char  *_cb_user_string   = DEFAULT_USER_STRING;
+static size_t       _cb_user_strlen   = DEFAULT_USER_STRLEN;
+static const char  *_cb_pswd_string   = DEFAULT_PSWD_STRING;
+static size_t       _cb_pswd_strlen   = DEFAULT_PSWD_STRLEN;
+
+static const char * _cb_conn_string = NULL;
+static size_t       _cb_conn_strlen = 0;
 
 static void open_callback(__unused lcb_INSTANCE *instance, lcb_STATUS rc)
 {
@@ -143,10 +151,16 @@ void kore_parent_configure(__unused int argc, __unused char *argv[])
     srand(time(NULL));
 
     // kore has it's own command line options processing so we'll use env variables instead
-    char *cb_conn = getenv(ENV_CB_CONN);
-    if (cb_conn != NULL && cb_conn[0] != '\0') {
-        _cb_conn_string = cb_conn;
-        _cb_conn_strlen = strlen(cb_conn);
+    char *cb_scheme = getenv(ENV_CB_SCHEME);
+    if (cb_scheme != NULL && cb_scheme[0] != '\0') {
+        _cb_scheme_string = cb_scheme;
+        _cb_scheme_strlen = strlen(cb_scheme);
+    }
+
+    char *cb_host = getenv(ENV_CB_HOST);
+    if (cb_host != NULL && cb_host[0] != '\0') {
+        _cb_host_string = cb_host;
+        _cb_host_strlen = strlen(cb_host);
     }
 
     char *cb_user = getenv(ENV_CB_USER);
@@ -161,8 +175,15 @@ void kore_parent_configure(__unused int argc, __unused char *argv[])
         _cb_pswd_strlen = strlen(cb_pswd);
     }
 
-    kore_log(LOG_INFO, "Couchbase Connection (%s): %s", ENV_CB_CONN, _cb_conn_string);
-    kore_log(LOG_INFO, "Couchbase Username (%s): %s", ENV_CB_USER, _cb_user_string);
+    struct kore_buf *conn_buf = kore_buf_alloc(BUFSIZ);
+    kore_buf_appendf(conn_buf, "%.*s%.*s",
+        _cb_scheme_strlen, _cb_scheme_string,
+        _cb_host_strlen, _cb_host_string);
+    _cb_conn_string = kore_buf_stringify(conn_buf, NULL);
+    _cb_conn_strlen = strlen(_cb_conn_string);
+    
+    kore_log(LOG_INFO, "Couchbase Connection: %s", _cb_conn_string);
+    kore_log(LOG_INFO, "Couchbase Username: %s", _cb_user_string);
 }
 
 void kore_worker_configure()
