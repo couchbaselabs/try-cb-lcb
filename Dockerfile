@@ -4,17 +4,11 @@ ENV TZ=America/Los_Angeles
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 LABEL maintainer="Couchbase"
 
-RUN mkdir -p /try-cb-lcb
-
-ADD . /try-cb-lcb
-
-WORKDIR /try-cb-lcb
-
 RUN apt-get update -y && apt-get install -y \
     software-properties-common \
     build-essential cmake \
     libssl-dev libjwt-dev uuid-dev \
-    kore jq curl wget
+    jq curl wget
 
 # Configure APT repository for libcouchbase
 RUN wget https://packages.couchbase.com/clients/c/repos/deb/couchbase.key \
@@ -29,10 +23,30 @@ RUN apt-get install -y libcouchbase3 \
     libcouchbase-dbg libcouchbase3-libev \
     libcouchbase3-libevent
 
+# Install kore.io
+RUN wget https://kore.io/releases/kore-4.1.0.tar.gz
+RUN wget https://kore.io/releases/kore-4.1.0.tar.gz.minisig
+RUN add-apt-repository ppa:dysfunctionalprogramming/minisign \
+    && apt-get install -y minisign
+RUN minisign -Vm kore-4.1.0.tar.gz -P RWSxkEDc2y+whfKTmvhqs/YaFmEwblmvar7l6RXMjnu6o9tZW3LC0Hc9 \
+    && tar -xvzf kore-4.1.0.tar.gz \
+    && cd kore-4.1.0 \
+    && make \
+    && make install \
+    && cp kore /usr/local/bin/kore \
+    && cp kodev/kodev /usr/local/bin/kodev
+
+RUN mkdir -p /try-cb-lcb
+
+ADD . /try-cb-lcb
+
+WORKDIR /try-cb-lcb
+
 RUN kodev clean && kodev build
 
 # Expose ports
 EXPOSE 8080
 
 # Set the entrypoint
-ENTRYPOINT ["./wait-for-couchbase.sh", "kore", "-n", "-r", "-c", "/try-cb-lcb/conf/try-cb-lcb.conf"]
+# ENTRYPOINT ["./wait-for-couchbase.sh", "kodev", "run"]
+ENTRYPOINT ["./wait-for-couchbase.sh", "kore", "-f", "-n", "-r", "-c", "/try-cb-lcb/conf/try-cb-lcb.conf"]

@@ -142,7 +142,7 @@ See [Kore.io] documentation for more details on various ways to run the server. 
 For example, the following commmand will run the `backend` server as a foreground process in DEBUG mode all log output will be visible in the terminal console:
 
 ```
-CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./dev-run.sh
+CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./run-dev.sh
 ```
 
 To stop the server press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and wait for the server to gracefully shutdown.
