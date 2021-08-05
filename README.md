@@ -56,8 +56,6 @@ You may also want to consider [Running All Components Manually](#running-all-com
 
 ## Running with Docker Compose
 
-> WARNING: This is a new repository and the Docker configuration needs more work. Do not use any Docker instructions for this project until the issues are fixed and this comment is removed.
-
 You will need [Docker] installed on your machine in order to run this application as we have defined a [_Dockerfile_](Dockerfile) and a [_docker-compose.yml_](docker-compose.yml) to orchestrate all three of the [Server Layer Components](#server-layer-components).
 
 Running with Docker Compose is as simple as running:
@@ -76,8 +74,6 @@ To end the application press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and
 
 
 ## Mix and Match Services
-
-> WARNING: This is a new repository and the Docker configuration needs more work. Do not use any Docker instructions for this project until the issues are fixed and this comment is removed.
 
 Instead of running all services, you can start any combination of `backend`,`frontend`, `db` via Docker, and take responsibility for starting the other services yourself.
 
