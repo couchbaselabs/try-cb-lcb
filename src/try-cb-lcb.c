@@ -22,6 +22,8 @@
 
 #include "try-cb-lcb.h"
 #include "util.h"
+
+#if defined(__linux__)
 #include <kore/seccomp.h>
 
 // syscalls required by libcouchbase
@@ -40,6 +42,7 @@ KORE_SECCOMP_FILTER("try-cb-lcb",
     KORE_SYSCALL_ALLOW(sendmsg),
     KORE_SYSCALL_ALLOW(recvmsg),
 )
+#endif /* linux */
 
 _Thread_local lcb_INSTANCE *_tcblcb_lcb_instance = NULL;
 
