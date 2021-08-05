@@ -41,6 +41,7 @@ KORE_SECCOMP_FILTER("try-cb-lcb",
     KORE_SYSCALL_ALLOW(getpeername),
     KORE_SYSCALL_ALLOW(sendmsg),
     KORE_SYSCALL_ALLOW(recvmsg),
+    KORE_SYSCALL_ALLOW(gettimeofday),
 )
 #endif /* linux */
 

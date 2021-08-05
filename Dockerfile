@@ -48,5 +48,4 @@ RUN kodev clean && kodev build
 EXPOSE 8080
 
 # Set the entrypoint
-# ENTRYPOINT ["./wait-for-couchbase.sh", "kodev", "run"]
-ENTRYPOINT ["./wait-for-couchbase.sh", "kore", "-f", "-n", "-r", "-c", "/try-cb-lcb/conf/try-cb-lcb.conf"]
+ENTRYPOINT ["./wait-for-couchbase.sh", "kodev", "run"]
