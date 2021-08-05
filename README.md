@@ -56,8 +56,6 @@ You may also want to consider [Running All Components Manually](#running-all-com
 
 ## Running with Docker Compose
 
-> WARNING: This is a new repository and the Docker configuration needs more work. Do not use any Docker instructions for this project until the issues are fixed and this comment is removed.
-
 You will need [Docker] installed on your machine in order to run this application as we have defined a [_Dockerfile_](Dockerfile) and a [_docker-compose.yml_](docker-compose.yml) to orchestrate all three of the [Server Layer Components](#server-layer-components).
 
 Running with Docker Compose is as simple as running:
@@ -76,8 +74,6 @@ To end the application press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and
 
 
 ## Mix and Match Services
-
-> WARNING: This is a new repository and the Docker configuration needs more work. Do not use any Docker instructions for this project until the issues are fixed and this comment is removed.
 
 Instead of running all services, you can start any combination of `backend`,`frontend`, `db` via Docker, and take responsibility for starting the other services yourself.
 
@@ -142,7 +138,7 @@ See [Kore.io] documentation for more details on various ways to run the server. 
 For example, the following commmand will run the `backend` server as a foreground process in DEBUG mode all log output will be visible in the terminal console:
 
 ```
-CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./dev-run.sh
+CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./run-dev.sh
 ```
 
 To stop the server press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and wait for the server to gracefully shutdown.

@@ -23,6 +23,28 @@
 #include "try-cb-lcb.h"
 #include "util.h"
 
+#if defined(__linux__)
+#include <kore/seccomp.h>
+
+// syscalls required by libcouchbase
+// See https://docs.kore.io/4.1.0/api/seccomp.html
+// List of syscalls retrieved by running with `seccomp_tracing yes` in config.
+KORE_SECCOMP_FILTER("try-cb-lcb",
+    KORE_SYSCALL_ALLOW(getgid),
+    KORE_SYSCALL_ALLOW(getegid),
+    KORE_SYSCALL_ALLOW(epoll_create1),
+    KORE_SYSCALL_ALLOW(pipe2),
+    KORE_SYSCALL_ALLOW(uname),
+    KORE_SYSCALL_ALLOW(socket),
+    KORE_SYSCALL_ALLOW(connect),
+    KORE_SYSCALL_ALLOW(getsockname),
+    KORE_SYSCALL_ALLOW(getpeername),
+    KORE_SYSCALL_ALLOW(sendmsg),
+    KORE_SYSCALL_ALLOW(recvmsg),
+    KORE_SYSCALL_ALLOW(gettimeofday),
+)
+#endif /* linux */
+
 _Thread_local lcb_INSTANCE *_tcblcb_lcb_instance = NULL;
 
 // See `docker-compose.yml` for the `db` alias that resolves to the couchbase-server docker hostname.

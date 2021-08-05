@@ -108,4 +108,5 @@ wait-for $ATTEMPTS \
   '. | del(.indexer) | del(.["travel-sample:def_name_type"]) | map(.items_count > 0) | all' \
   '. | del(.indexer) | map(.num_pending_requests == 0) | all'
 
+set -x
 exec $@
