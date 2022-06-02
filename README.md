@@ -13,7 +13,7 @@ The application is a flight planner that demonstrates: new user registration, re
 
 ## Design Notes
 
-This sample is focused on demonstrating some of the basic concepts of working with the Couchbase [C-SDK] and does not represent best practices for writing a scalable production ready REST server. [Kore.io] has several features that can be used to implement strategies that scale much better (memory pools, async tasks, etc). Likewise, [libcouchbase] has several strategies that can be used to help orchestrate asynchronous responses or events. However, this sample currently just implements a simple "thread per connection" model by using one LCB instance per thread, thread local memory, and `lcb_wait()` with synchronous callback delegates. A scalable production server would most likely want to explore the fully asynchronous strategies instead.
+This sample is focused on demonstrating some basic concepts of working with the Couchbase [C-SDK] and does not represent best practices for writing a scalable production ready REST server. [Kore.io] has several features that can be used to implement strategies that scale much better (e.g., memory pools, async tasks). Likewise, [libcouchbase] has several strategies that can be used to help orchestrate asynchronous responses or events. However, this sample currently just implements a simple "thread per connection" model by using one LCB instance per thread, thread local memory, and `lcb_wait()` with synchronous callback delegates. A scalable production server would most likely want to explore the fully asynchronous strategies instead.
 
 ### Server Layer Components
 
@@ -27,10 +27,10 @@ There are three server component layers required to run the full application:
 
 This project has the following direct dependencies (which may pull in transitive dependencies):
 
-- [libcouchbase] - C library SDK for Couchbase.
-- [libjwt] - C library for encoding JSON Web Tokens.
-- [libuuid] - C library for generating UUIDs.
-- [Kore.io] - An HTTP server framework written in C.
+- [libcouchbase] _(3.3.0)_ - C library SDK for Couchbase.
+- [libjwt] _(1.13.1)_ - C library for encoding JSON Web Tokens.
+- [libuuid] _(1.6.2)_ - C library for generating UUIDs.
+- [Kore.io] _(4.1.0)_ - An HTTP server framework written in C. _Note that **Kore.io 4.2.0** seems to have made a breaking change in the route declarations so this sample still requires 4.1.0 until we have time to refactor to 4.2.0._
 - [cJSON] - C library for serializing JSON data (source copied here).
 
 The following are indirect dependencies or tools that may be useful for development:
@@ -49,7 +49,7 @@ To download the application you can either [download the archive](https://github
 git clone https://github.com/couchbaselabs/try-cb-lcb.git
 ```
 
-We would normally suggest [Running with Docker Compose](#running-with-docker-compose) or using the [Mix and Match Services](#mix-and-match-services) to get up an running quickly without worrying about all the details. However, the Docker configuration for this project _**does not currently work**_ until we resolve some issues that were recently discovered.
+We would normally suggest [Running with Docker Compose](#running-with-docker-compose) or using the [Mix and Match Services](#mix-and-match-services) to get up and running quickly without worrying about all the details. However, the Docker configuration for this project _**does not currently work**_ until we resolve some issues that were recently discovered.
 
 You may also want to consider [Running All Components Manually](#running-all-components-manually) if you need more control or to help get setup for a more active development workflow without using Docker. _**This is currently the only supported option until we resolve the aforementioned Docker issues.**_
 
@@ -68,7 +68,7 @@ docker-compose up
 
 Once everything is up and running, you can access the `backend` server REST API on `http://localhost:8080/`, the `frontend` server web application on `http://localhost:8081/` and the `db` server Couchbase Server at `http://localhost:8091/`.
 
-Using the web application, you can then register a user account, login, and exercise all of the features of the application.
+Using the web application, you can then register a user account, login, and exercise all the features of the application.
 
 To end the application press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and wait for docker-compose to gracefully stop your containers.
 
@@ -121,21 +121,40 @@ To run the `frontend` web application manually without Docker, follow the instru
 
 When actively developing the `backend` logic, it's often more convenient to run all components manually when you need more direct control, or if any problems arise with the Docker images.
 
-For local development, the instructions mentioned in [Mix and Match Services](#mix-and-match-services) provide all of the information required for the `db` and `frontend` server components. This section will focus on what's required for this project (the `backend` server component).
+For local development, the instructions mentioned in [Mix and Match Services](#mix-and-match-services) provide all the information required for the `db` and `frontend` server components. This section will focus on what's required for this project (the `backend` server component).
 
 ### Local Development Setup
 
-There are a few libraries required, but [Kore.io] is the most limiting dependency. Kore supports several unix variants but it's easiest to get started on **macOS 10.10.x** or greater. So using [homebrew](https://brew.sh/) on macOS is the easiest way to get up and running with the following command:
+There are a few libraries required, but [Kore.io] (4.1.0) is the most limiting dependency. Kore supports several unix variants, but for most developers it's easiest to get started on **macOS 10.10.x** or greater using [homebrew](https://brew.sh/).
 
+_Note that **Kore.io 4.2.0** seems to have introduced a breaking change in the route declarations, so this sample requires 4.1.0 specifically until we have time to refactor to 4.2.0 and retest._
+
+#### Installing with Homebrew on macOS
+
+Some users (on M1 mac) have reported that they now need to add this to their shell profile (or run on command line before doing anything that builds):
+```sh
+export CPATH=/opt/homebrew/include
+export LIBRARY_PATH=/opt/homebrew/lib
 ```
-brew install libcouchbase libjwt ossp-uuid kore
+
+First install the more common library dependencies:
+```sh
+brew install libcouchbase libjwt ossp-uuid
+```
+
+Installing _**Kore 4.1.0**_ specifically with Homebrew takes a little more work these days:
+```sh
+brew tap-new local/kore
+brew extract --version=4.1.0 kore local/kore
+brew install kore@4.1.0
+brew link --overwrite kore@4.1.0
 ```
 
 ### Starting the Backend
 
 See [Kore.io] documentation for more details on various ways to run the server. However, during development, the most useful way to run the server in DEBUG mode is using the `kodev` command. For convenience, we can just use the included helper script [run-dev.sh](./run-dev.sh). However, Kore takes control of the command line arguments, so we must specify the Couchbase Server configuration parameters using environment variables instead.
 
-For example, the following commmand will run the `backend` server as a foreground process in DEBUG mode all log output will be visible in the terminal console:
+For example, the following command will run the `backend` server as a foreground process in DEBUG mode all log output will be visible in the terminal console:
 
 ```
 CB_HOST=127.0.0.1 CB_USER=raycardillo CB_PSWD=raycardillo ./run-dev.sh
@@ -146,7 +165,7 @@ To stop the server press <kbd>Control</kbd>+<kbd>C</kbd> in the terminal and wai
 ### Important Reminders
 
 - Verify that the `db` is installed as described in the [Bring your own database](#bring-your-own-database) section above and is up and running without errors.
-- Verify that the `frontend` is setup, installed, and running  as described in the [try-cb-frontend-v2](https://github.com/couchbaselabs/try-cb-frontend-v2) repository instructions.
+- Verify that the `frontend` is set up, installed, and running  as described in the [try-cb-frontend-v2](https://github.com/couchbaselabs/try-cb-frontend-v2) repository instructions.
 
 
 -----
