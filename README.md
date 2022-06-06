@@ -127,7 +127,7 @@ For local development, the instructions mentioned in [Mix and Match Services](#m
 
 There are a few libraries required, but [Kore.io] (4.1.0) is the most limiting dependency. Kore supports several unix variants, but for most developers it's easiest to get started on **macOS 10.10.x** or greater using [homebrew](https://brew.sh/).
 
-_Note that **Kore.io 4.2.0** seems to have introduced a breaking change in the route declarations, so this sample requires 4.1.0 specifically until we have time to refactor to 4.2.0 and retest._
+> **_NOTE:_** **Kore.io 4.2.0** seems to have introduced a breaking change in the route declarations, so this sample requires `4.1.0` specifically until we have time to refactor to `4.2.0` and retest.
 
 #### Installing with Homebrew on macOS
 
